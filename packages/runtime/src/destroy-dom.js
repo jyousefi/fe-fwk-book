@@ -1,5 +1,6 @@
 import { removeEventListeners } from './events'
 import { DOM_TYPES } from './h'
+import { enqueueJob } from './scheduler'
 import { assert } from './utils/assert'
 
 /**
@@ -11,9 +12,7 @@ import { assert } from './utils/assert'
  * @param {import('./h').VNode} vdom the virtual DOM node to destroy
  */
 export function destroyDOM(vdom) {
-  const { type, el } = vdom
-
-  assert(!!el, 'Can only destroy DOM nodes that have been mounted')
+  const { type } = vdom
 
   switch (type) {
     case DOM_TYPES.TEXT: {
@@ -28,6 +27,12 @@ export function destroyDOM(vdom) {
 
     case DOM_TYPES.FRAGMENT: {
       removeFragmentNodes(vdom)
+      break
+    }
+
+    case DOM_TYPES.COMPONENT: {
+      vdom.component.unmount()
+      enqueueJob(() => vdom.component.onUnmounted())
       break
     }
 
@@ -62,9 +67,6 @@ function removeElementNode(vdom) {
 }
 
 function removeFragmentNodes(vdom) {
-  const { el, children } = vdom
-
-  assert(el instanceof HTMLElement)
-
+  const { children } = vdom
   children.forEach(destroyDOM)
 }
