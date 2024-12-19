@@ -2,10 +2,13 @@
 
 ![fe-fwk](https://img.shields.io/badge/fe--fwk-book-blueviolet)
 
+Learn how frontend frameworks work by building your own—from scratch!
+
 Code for the book "Build a web frontend framework (from scratch)," published by [Manning](http://mng.bz/aM2o) and written [by myself](https://github.com/angelsolaorbaiceta).
 In this book, you build a frontend framework yourself to learn how frontend frameworks work.
 
-![Cover](https://images.manning.com/360/480/resize/book/0/dfa7a0d-8341-4cb5-86eb-958d2ed263f7/Orbaiceta-MEAP-HI.png)
+<img width="400" alt="Build a frontend web framework" src="https://github.com/angelsolaorbaiceta/fe-fwk-book/assets/7513343/824aa8bc-76d2-4d57-b6f4-7e67924c9e26">
+
 
 📘 [Purchase your copy of the book here](http://mng.bz/aM2o) and start learning today!
 
@@ -35,10 +38,11 @@ The first three parts of the book are published by [Manning](http://mng.bz/aM2o)
 
 The last two are freely available in the [repository's Wiki](https://github.com/angelsolaorbaiceta/fe-fwk-book/wiki):
 
-* _Part IV_—Extra features (🖥 online; coming soon)
+* _Part IV_—Extra features (🖥 online; WIP)
   * [_Chapter 15_—Slots—Inserting external content](https://github.com/angelsolaorbaiceta/fe-fwk-book/wiki/Chapter-15%E2%80%94Slots%E2%80%94Inserting-external-content)
-  * _Chapter 16_—Single Page Application routing
-  * _Chapter 17_—Compiling HTML templates into render functions
+  * [_Chapter 16_—Single Page Application routing](https://github.com/angelsolaorbaiceta/fe-fwk-book/wiki/Chapter-16%E2%80%94Single-Page-Application-routing)
+  * [_Chapter 17_—Implementing a hash router](https://github.com/angelsolaorbaiceta/fe-fwk-book/wiki/Chapter-17%E2%80%94Implementing-a-hash-router)
+  * [_Chapter 18_—Routing the application](https://github.com/angelsolaorbaiceta/fe-fwk-book/wiki/Chapter-18%E2%80%94Routing-the-application)
     
 * _Part V_—Advanced topics (🖥 online; coming soon)
 

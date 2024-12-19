@@ -1,3 +1,5 @@
+import { makeCountMap, mapsDiff } from './maps'
+
 /**
  * If the given value is an array, it returns it. Otherwise, it returns an array
  * containing the given value.
@@ -23,14 +25,47 @@ export function withoutNulls(arr) {
  * Given two arrays, it returns the items that have been added to the new array
  * and the items that have been removed from the old array.
  *
+ * NOTE TO READERS: your implementation of this function if you followed along
+ * with the book's chapter 7 listing is different from what's here. The version
+ * I wrote in the book has a bug, as it doesn't deal with duplicated items.
+ *
+ * @see https://github.com/angelsolaorbaiceta/fe-fwk-book/wiki/Errata#bug-in-the-arraysdiff-function check the errata for more information
+ *
  * @param {any[]} oldArray the old array
  * @param {any[]} newArray the new array
- * @returns {{added: any[], removed: any[]}}}
+ * @returns {{added: any[], removed: any[]}}
  */
 export function arraysDiff(oldArray, newArray) {
+  const oldsCount = makeCountMap(oldArray)
+  const newsCount = makeCountMap(newArray)
+  const diff = mapsDiff(oldsCount, newsCount)
+
+  // Added items repeated as many times as they appear in the new array
+  const added = diff.added.flatMap((key) =>
+    Array(newsCount.get(key)).fill(key)
+  )
+
+  // Removed items repeated as many times as they appeared in the old array
+  const removed = diff.removed.flatMap((key) =>
+    Array(oldsCount.get(key)).fill(key)
+  )
+
+  // Updated items have to check the difference in counts
+  for (const key of diff.updated) {
+    const oldCount = oldsCount.get(key)
+    const newCount = newsCount.get(key)
+    const delta = newCount - oldCount
+
+    if (delta > 0) {
+      added.push(...Array(delta).fill(key))
+    } else {
+      removed.push(...Array(-delta).fill(key))
+    }
+  }
+
   return {
-    added: newArray.filter((newItem) => !oldArray.includes(newItem)),
-    removed: oldArray.filter((oldItem) => !newArray.includes(oldItem)),
+    added,
+    removed,
   }
 }
 
@@ -78,6 +113,8 @@ export function arraysDiffSequence(
   for (let index = 0; index < newArray.length; index++) {
     if (array.isRemoval(index, newArray)) {
       sequence.push(array.removeItem(index))
+      // Removals shouldn't advance the index. Removing the item shifts the
+      // remaining items to the left, so the next item is now at the same index.
       index--
       continue
     }
@@ -196,14 +233,16 @@ class ArrayWithOriginalIndices {
   }
 
   /**
-   * Checks if the item at the given index is an addition with respect to the
-   * given array.
+   * Checks if the item at the given index in this array doesn't appear in the
+   * passed in `newArray`. This means the item was removed from this array with
+   * respect to the `newArray`.
    *
-   * @param {number} index
-   * @param {any[]} newArray
+   * @param {number} index the index of the item in this array
+   * @param {any[]} newArray the new array to compare against
    * @returns {boolean} whether the item at the given index is a removal
    */
   isRemoval(index, newArray) {
+    // If the index is beyond the length of the array, it can't be a removal.
     if (index >= this.length) {
       return false
     }
@@ -220,7 +259,7 @@ class ArrayWithOriginalIndices {
    * Removes the item at the given index from the array and returns the removal
    * operation.
    *
-   * @param {number} index
+   * @param {number} index the index of the item to remove in this array
    * @returns {ArraysDiffSequenceOp} removal operation
    */
   removeItem(index) {
@@ -237,15 +276,16 @@ class ArrayWithOriginalIndices {
   }
 
   /**
-   * Checks if the item at the given index is a noop with respect to the given
-   * array. A noop operation happens when the item at the given index is the
-   * same in both arrays.
+   * Checks if the item at the given index in this array is a noop with respect to
+   * the given passed in `newArray`. A noop operation happens when the item at the
+   * given index is the same in both arrays.
    *
-   * @param {number} index
-   * @param {any[]} newArray
+   * @param {number} index the index of the item in this array
+   * @param {any[]} newArray the new array to compare against
    * @returns {boolean} whether the item at the given index is a noop
    */
   isNoop(index, newArray) {
+    // If the index is beyond the length of the array, it can't be a noop.
     if (index >= this.length) {
       return false
     }
@@ -260,7 +300,7 @@ class ArrayWithOriginalIndices {
    * Returns a noop operation for the item at the given index.
    * The `from` index is the original index of the item.
    *
-   * @param {number} index
+   * @param {number} index the index in this array
    * @returns {ArraysDiffSequenceOp} noop operation
    */
   noopItem(index) {
@@ -273,12 +313,11 @@ class ArrayWithOriginalIndices {
   }
 
   /**
-   * Checks if the item is an addition with respect to the given array.
-   * An addition happens when the item is not found in the array, starting
-   * from the given index.
+   * Checks if the item is an addition. An addition happens when the item is
+   * not found in the array, starting from the given index (inclusive).
    *
-   * @param {any} item
-   * @param {number} fromIdx
+   * @param {any} item the item to check
+   * @param {number} fromIdx the index to start looking from (inclusive)
    * @returns {boolean} whether the item is an addition
    */
   isAddition(item, fromIdx) {
@@ -289,8 +328,8 @@ class ArrayWithOriginalIndices {
    * Adds the item at the given index to the array and returns the addition
    * operation.
    *
-   * @param {any} item
-   * @param {number} index
+   * @param {any} item the item to be added in this array
+   * @param {number} index the index to add the item at
    * @returns {ArraysDiffSequenceOp} addition operation
    */
   addItem(item, index) {
@@ -307,11 +346,12 @@ class ArrayWithOriginalIndices {
   }
 
   /**
-   * Moves the item at the given index to the given index and returns the move
-   * operation.
+   * Moves the passed in item to the given index and returns the move operation.
+   * The item is searched in this array starting from the given index (inclusive).
+   * This means that the items are always moved from right to left (conventionally).
    *
-   * @param {any} item
-   * @param {number} toIndex
+   * @param {any} item the item to move
+   * @param {number} toIndex the index to move the item to
    * @returns {ArraysDiffSequenceOp} move operation
    */
   moveItem(item, toIndex) {
@@ -337,7 +377,7 @@ class ArrayWithOriginalIndices {
   /**
    * Removes all items after the given index and returns the removal operations.
    *
-   * @param {number} index
+   * @param {number} index the index to start removing items from
    * @returns {ArraysDiffSequenceOp[]} the removal operations
    */
   removeItemsAfter(index) {
