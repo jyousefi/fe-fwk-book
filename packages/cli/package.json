@@ -31,10 +31,10 @@
   "license": "MIT",
   "dependencies": {
     "mustache": "^4.2.0",
-    "yargs": "^17.7.2"
+    "yargs": "^18.0.0"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.38.3",
-    "rollup": "^4.31.0"
+    "@vercel/ncc": "^0.38.4",
+    "rollup": "^4.53.3"
   }
 }
